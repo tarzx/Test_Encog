@@ -1,7 +1,7 @@
 import java.util.Random;
 
 
-public class QuestionGroup {
+public class GroupQuestion {
 	//Target
 	private final String target_thought = "your thought";
 	//private final String target_behaviour = "your behaviour";
@@ -46,7 +46,7 @@ public class QuestionGroup {
 			 
 	//Group 5
 	private final String[] g5 = { "How are things sitting for you at the moment?",
-								  "Which you are you being at the moment?" };
+								  "What do you think about yourself at the moment?" };
 			 
 	//Group 6-1
 	private final String[] g61 = { "Replay the thought that just went through your mind.",
@@ -117,13 +117,49 @@ public class QuestionGroup {
 											"I understand about ###, now let's talk about @@@.\n" };
 	private final String change_topic_default = "that";
 	private final String[] echo = { "You said that %%%.\n",
-									"It means %%%.\n" };
+									"It sounds that %%%.\n" };
 	private final String link = "So, ";
+	
+	//Summary
+	private final String summary = "Overall, you have said that your current thought is about ###.\n"
+			+ "Your current state is that %%%.\n"
+			+ "In addition, your goal is that &&&.";
+	private final String summary_default = "yourself";
 	
 	private Random rand;
 	
-	public QuestionGroup() {
+	public GroupQuestion() {
 		rand = new Random();
+	}
+	
+	//ControlLevel
+	private final String preControl = "To what extent do you feel you are in control of your life recently?\n";
+	private final String postControl = "After answering the question, I hope you feel better.\n"
+			+ "So, let us check again. To what extent do you feel you are in control of your life at the moment?\n";
+	private final String controlChoice = "(1) Not at all\n"
+			+ "(2) To little extent\n"
+			+ "(3) To some extent\n"
+			+ "(4) To a moderate extent\n"
+			+ "(5) To a large extent";
+	
+	//Response
+	private String likeChoice = "(1) Like\n"
+			+ "(2) Neutral\n"
+			+ "(3) Unlike";
+	
+	//Ambiguous
+	private String ambPreQuestion = "Now I would like to ask you about your likes and dislikes about the series of question.\n";
+	private String ambQuestion = "Do you like that the question '%%%' is followed by '&&&'?\n";
+	//Intervention
+	private String preIntvQuestion = "OK. I would now like to ask about the interventions to see if they are good for you.\n";
+	private String slotIntvQuestion = "Do you like the present timing frequency of interventions?\n";
+	private String freqIntvQuestion = "Do you like the present timing slot of interventions?\n";
+	
+	public String getPreControl() {
+		return preControl + controlChoice;
+	}
+	public String getPostControl() {
+		return postControl + controlChoice;
 	}
 	
 	public Question getQuestionG1(int prevGroup) {
@@ -147,8 +183,9 @@ public class QuestionGroup {
 		return q; 
 	}
 	
-	public Question getQuestionG3(int prevGroup, String prevAns, String echoAns, boolean isChangeTopic) {
+	public Question getQuestionG3(int prevGroup, String prevAns, String echoAns, boolean isChangeTopic, boolean isAmbiguious) {
 		Question q = new Question(3, g3[getRandom(g3.length)]);
+		q.setIsAmbiguious(isAmbiguious);
 		q.setPrevGroup(prevGroup);
 		q.setIsChangeTopic(isChangeTopic);
 		q.setChangeTopic(change_topic[getRandom(change_topic.length)]);
@@ -161,8 +198,9 @@ public class QuestionGroup {
 		return q;
 	}
 	
-	public Question getQuestionG4(int prevGroup, String prevAns, String echoAns, boolean isChangeTopic) {
+	public Question getQuestionG4(int prevGroup, String prevAns, String echoAns, boolean isChangeTopic, boolean isAmbiguious) {
 		Question q = new Question(4, g4[getRandom(g4.length)]);
+		q.setIsAmbiguious(isAmbiguious);
 		q.setPrevGroup(prevGroup);
 		q.setIsChangeTopic(isChangeTopic);
 		q.setChangeTopic(change_topic[getRandom(change_topic.length)]);
@@ -234,14 +272,16 @@ public class QuestionGroup {
 		q.setAnswerPrefix(g91_prefix[n]);
 		
 		Question qs = new Question(92, g92[n]);
+		qs.setEcho(echo[getRandom(echo.length)]);
 		qs.setLink(link);
 		
 		q.setNextQuestion(qs);
 		return q;
 	}
 	
-	public Question getQuestionG10(int prevGroup, String echoAns, boolean isEcho) {
+	public Question getQuestionG10(int prevGroup, String echoAns, boolean isEcho, boolean isAmbiguous) {
 		Question q = new Question(10, g10[getRandom(g10.length)]);
+		q.setIsAmbiguious(isAmbiguous);
 		q.setPrevGroup(prevGroup);
 		q.setIsEcho(isEcho);
 		q.setEcho(echo[getRandom(echo.length)]);
@@ -250,37 +290,57 @@ public class QuestionGroup {
 		return q;
 	}
 	
-	public Question getQuestionG11(int prevGroup, String echoAns, boolean isEcho) {
+	public Question getQuestionG11(int prevGroup, String echoAns, boolean isEcho, boolean isAmbiguous) {
 		Question q = new Question(11, g11[getRandom(g11.length)]);
+		q.setIsAmbiguious(isAmbiguous);
 		q.setPrevGroup(prevGroup);
 		q.setIsEcho(isEcho);
 		q.setEcho(echo[getRandom(echo.length)]);
 		q.setPrevEcho(echoAns);
 		q.setLink(link);
 		return q;
+	}
+	
+	public String getSummary(String thought, String behaviour, String goal) {
+		return Transform.replaceTransformPattern("&&&",
+				Transform.replaceTransformPattern("%%%",
+				Transform.replacePartial(summary, thought, summary_default), behaviour, false), goal, false);
+	}
+	
+	public String getAmbiguous(String prevQ, String Q, boolean isFirst) {
+		return Transform.replacePattern("&&&",
+				Transform.replacePattern("%%%", (isFirst ? ambPreQuestion : "") + ambQuestion + likeChoice, prevQ), Q);
+	}
+	
+	public String getIntvention(boolean isSlot) {
+		if (isSlot) {
+			return preIntvQuestion + slotIntvQuestion + likeChoice;
+		} else {
+			return freqIntvQuestion + likeChoice;
+		}
 	}
 	
 	private int getRandom(int length) {
 		return rand.nextInt(length);
 	}
 	
-	public Question getGroup3OR4(SelectReplayGoalNet srgn, double ctlLv, int age, boolean isMale, int prevGroup, 
+	public Question getGroup3OR4(SelectRecommedation sgq, double ctlLv, int age, boolean isMale, int prevGroup, 
 								 String prevAns, String echoAns, boolean isChangeTopic) {
-		int group = srgn.getQuestionGroup(ctlLv, age, isMale, prevGroup);
+		int group = sgq.selectReplayGoal(ctlLv, age, isMale, prevGroup);
 		if (group==3) {
-			return getQuestionG3(prevGroup, prevAns, echoAns, isChangeTopic);
+			return getQuestionG3(prevGroup, prevAns, echoAns, isChangeTopic, true);
 		} else {
-			return getQuestionG4(prevGroup, prevAns, echoAns, isChangeTopic);
+			return getQuestionG4(prevGroup, prevAns, echoAns, isChangeTopic, true);
 		}
 	}
 	
-	public Question getGroup10OR11(SelectReflectBehaviourNet srbn, double ctlLv, int age, boolean isMale, int prevGroup, 
+	public Question getGroup10OR11(SelectRecommedation sgq, double ctlLv, int age, boolean isMale, int prevGroup, 
 								   String echoAns, boolean isEcho) {
-		int group = srbn.getQuestionGroup(ctlLv, age, isMale, prevGroup);
+		int group = sgq.selectReflectBehaviour(ctlLv, age, isMale, prevGroup);
 		if (group==10) {
-			return getQuestionG10(prevGroup, echoAns, isEcho);
+			return getQuestionG10(prevGroup, echoAns, isEcho, true);
 		} else {
-			return getQuestionG11(prevGroup, echoAns, isEcho);
+			return getQuestionG11(prevGroup, echoAns, isEcho, true);
 		}
 	}
 	

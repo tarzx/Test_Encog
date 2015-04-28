@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -41,6 +40,7 @@ public class CrossValidation {
 					}
 					
 					writer.close();
+					reader.close();
 					
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block

@@ -1,23 +1,23 @@
 
 public class Transform {
-	private static String[][] mapSubject = { {"i", "i'm", "i'd", "my", "mine", "myself"}, 
-											 {"you", "you're", "you'd", "your", "yours", "yourself"} };
+	private static String[][] mapSubject = { {"i", "i'm", "i'd", "my", "mine", "myself", "me"}, 
+											 {"you", "you're", "you'd", "your", "yours", "yourself", "you"} };
 	
-	public static String partialTransform(final String input) {
+	private static String partialTransform(final String input) {
 		if (input.indexOf(". ") > 0) {
 			String sentence = input.substring(0, input.indexOf(". "));
 			if (sentence.split(" ").length < 4) {
-				return fullTransform(trimEnd(sentence)); 
+				return fullTransform(trimEnd(sentence), false); 
 			}
 		} else {
 			if (input.split(" ").length < 4) {
-				return fullTransform(trimEnd(input)); 
+				return fullTransform(trimEnd(input), false); 
 			}
 		}
 		return "";
 	}
 	
-	public static String fullTransform(final String input) {
+	private static String fullTransform(final String input, final boolean isStart) {
 		StringBuilder output = new StringBuilder();
 		String[] component = input.toLowerCase().split(" ");
 		for (int i=0; i<component.length; i++) {
@@ -30,7 +30,7 @@ public class Transform {
 			output.append(component[i] + " ");
 		}
 		
-		return trimEnd(upper(concat(output.toString().trim())));
+		return trimEnd(startSentence(concat(output.toString().trim()), isStart));
 	}
 	
 	private static String concat(final String input) {
@@ -47,13 +47,6 @@ public class Transform {
 		} else {
 			return input;
 		}
-	}
-	
-	private static String upper(final String input) {
-		String output = " " + input;
-		output = output.replace(" i ", " I ");
-		output = output.replace(" i'", " I'");
-		return output.substring(1);
 	}
 	
 	private static String negativeForm(final String input) {
@@ -98,9 +91,24 @@ public class Transform {
 		return output;
 	}
 	
-	public static String replaceFull(String input, String prevAns) {
-		return input.replace("%%%", Transform.fullTransform(prevAns));
+	public static String startSentence(final String input, boolean isUpper) {
+		if (isUpper) {
+			return input.substring(0, 1).toUpperCase() + input.substring(1);
+		} else {
+			String output = " " + input.toLowerCase();
+			output = output.replace(" i ", " I ");
+			output = output.replace(" i'", " I'");
+			return output.substring(1);
+		}
 	}
+	
+	public static String replacePattern(String pattern, String input, String prevAns) {
+		return input.replace(pattern, prevAns);
+	}
+	
+	public static String replaceTransformPattern(String pattern, String input, String prevAns, boolean isStart) {
+		return input.replace(pattern, Transform.fullTransform(prevAns, isStart));
+	}	
 	
 	public static String replacePartial(String input, String prevAns, String default_form) {
 		String partial =  Transform.partialTransform(prevAns);
@@ -115,7 +123,4 @@ public class Transform {
 		return input.replace("$$$", replacePartial(pattern, prevAns, default_pattern));
 	}
 	
-	public static String replaceTopic(String input, String topic) {
-		return input.replace("@@@", topic);
-	}
 }

@@ -46,6 +46,7 @@ public class NeuralNetBack {
 		BasicNetwork network = NeuralNetUtil.createNet(neurons);
 		double current_error = train(trainingSet, network, learning, momentum, maxEpoch);
 		// Return the best ever network
+		System.out.println(current_error);
 		return network;
 	}
 	

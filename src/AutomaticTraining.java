@@ -124,10 +124,10 @@ public class AutomaticTraining {
 				}
 			}
 		}
-		System.out.println("Done!");
-		System.out.println("Best neurons: "+bestNet.getLayerNeuronCount(1)+
-				"\nLowest error: " + best_error);
-		System.out.println("---------------------------------------------------");
+//		System.out.println("Done!");
+//		System.out.println("Best neurons: "+bestNet.getLayerNeuronCount(1)+
+//				"\nLowest error: " + best_error);
+//		System.out.println("---------------------------------------------------");
 		
 		// Return the best ever network
 		return bestNet;
