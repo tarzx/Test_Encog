@@ -77,9 +77,9 @@ public class NeuralNetBack {
 	private static double[] backProp(MLDataSet trainingSet, BasicNetwork network, int maxEpoch) {
 		double[] netDetail = {0.0, 0.0, 0.0, 0.0};
 		// Iterate through learning rates
-		for (double j = 0.0; j < NeuralNetUtil.MAX_LEARNING; j = j + NeuralNetUtil.STEP) {
+		for (double j = 0.0; j < NeuralNetUtil.MAX_LEARNING; j = j + NeuralNetUtil.STEP_PROPAGATION) {
 			// Iterate through momentums
-			for (double k = 0.0; k < NeuralNetUtil.MAX_MOMENTUM; k = k + NeuralNetUtil.STEP) {
+			for (double k = 0.0; k < NeuralNetUtil.MAX_MOMENTUM; k = k + NeuralNetUtil.STEP_PROPAGATION) {
 				// Create a net with i neurons
 				// Train the net, with given learning rate and momentum
 				// Get its error

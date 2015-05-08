@@ -7,10 +7,10 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
-import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 
 
-public class GenNNAND {
+public class GenNNAndRes {
 	/**
 	 * The input necessary for AND.
 	 */
@@ -29,20 +29,17 @@ public class GenNNAND {
 	 *            No arguments are used.
 	 */
 	public static void main(final String args[]) {
-		double MAX_LEARNING_RATE = 1.0;
-		double MAX_MOMENTUM = 1.0;
-		double STEP_PROPAGATION = 0.1;
-		int MAX_EPOCH = 10000;
-		int STEP_EPOCH = 1000;
+		int max_epoch = 1000;
+		int step = 100;
 		
 		// create training data
 		MLDataSet trainingSet = new BasicMLDataSet(AND_INPUT, AND_IDEAL);
 		
-		double[] ep = new double[MAX_EPOCH];
-		double[] er = new double[MAX_EPOCH];
-		double[] v = new double[MAX_EPOCH];
+		double[] ep = new double[max_epoch];
+		double[] er = new double[max_epoch];
+		double[] v = new double[max_epoch];
 		
-		for(int e=0; e<MAX_EPOCH; e++) {
+		for(int e=0; e<max_epoch; e++) {
 			ep[e] = e;
 		}
 		
@@ -58,65 +55,50 @@ public class GenNNAND {
 			MLDataSet trainingCVSet = new BasicMLDataSet(inp, ideal);
 						
 			BasicNetwork local_best_network = new BasicNetwork();
-			BasicNetwork previous_network = new BasicNetwork();
-			BasicNetwork current_network = new BasicNetwork();
-			double[] local_v = new double[MAX_EPOCH];
-			double[] previous_v = new double[MAX_EPOCH];
-			double[] current_v = new double[MAX_EPOCH];
+			double[] local_v = new double[max_epoch];
+			double[] previous_v = new double[max_epoch];
+			double[] current_v = new double[max_epoch];
 			double[] box_validation_error = { Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE };
 			double local_best_validation_error = Double.MAX_VALUE;
 			int local_best_epoch = 0;
 			int previous_epoch = 0;
 			int current_epoch = 0;
 			int local_max_epoch = 0;
-			for (int e=0; e<MAX_EPOCH; e+=STEP_EPOCH) {
-				BasicNetwork back_best_network = new BasicNetwork();
-				double back_best_validation_error = Double.MAX_VALUE;
-				for (double i=0.0; i<MAX_LEARNING_RATE; i+=STEP_PROPAGATION) {
-					for (double j=0.0; j<MAX_MOMENTUM; j+=STEP_PROPAGATION) {
-				
-						BasicNetwork network = createNetwork();
+			for (int e=0; e<max_epoch; e+=step) {
+				BasicNetwork network = createNetwork();
 			
-						final Backpropagation train = new Backpropagation(network, trainingCVSet, i, j);
-						train.fixFlatSpot(false);
-					
-						int epoch = 0;
-						do {
-							train.iteration();
-							epoch++;
-						} while (epoch < e);
-						
-						double error = getValidationError(trainingSet, k, network);
-						if (error<back_best_validation_error) {
-							back_best_validation_error = error;
-							back_best_network = network;
-						}
-						
-					}
-				}
+				final ResilientPropagation train = new ResilientPropagation(network, trainingCVSet);
+				train.fixFlatSpot(false);
+			
+				int epoch = 0;
+				do {
+					train.iteration();
+					epoch++;
+				} while (epoch < e);
 				
-				System.out.println("Trail: " + (k+1) + " | Epoch: " + e + " | Validation error: " + back_best_validation_error);
+				double error = getValidationError(trainingSet, k, network);
+				
+				System.out.println("Trail: " + (k+1) + " | Epoch: " + e + " | Validation error: " + error);
 				
 				previous_v = current_v;
 				previous_epoch = current_epoch;
-				current_v[e] = back_best_validation_error/AND_INPUT.length;
+				current_v[e] = error/AND_INPUT.length;
 				current_epoch = e;
-				previous_network = current_network;
-				current_network = back_best_network;
 				box_validation_error[0] = box_validation_error[1];
 				box_validation_error[1] = box_validation_error[2];
-				box_validation_error[2] = back_best_validation_error;
+				box_validation_error[2] = error;
 				if (getAvg(box_validation_error)<local_best_validation_error) {
 					local_best_validation_error = box_validation_error[1];
 					local_v = previous_v;
 					local_best_epoch = previous_epoch;
-					local_best_network = previous_network;
+					local_best_network = network;
 				} else {
-					if (e >= local_best_epoch + (3*STEP_EPOCH)) {
+					if (e >= local_best_epoch + (3*step)) {
 						local_max_epoch = e;
 						break;
 					}
 				}
+				
 			}
 			
 			if (local_best_validation_error<best_validation_error) {
@@ -137,34 +119,22 @@ public class GenNNAND {
 		
 		System.out.println("-----------------------------------------");
 		
-		for (int e=0; e<MAX_EPOCH; e+=STEP_EPOCH) {
-			double local_best_error = Double.MAX_VALUE;
-			for (double i=0.1; i<MAX_LEARNING_RATE; i+=STEP_PROPAGATION) {
-				for (double j=0.1; j<MAX_MOMENTUM; j+=STEP_PROPAGATION) {
-					
-					BasicNetwork network = createNetwork();
+		for (int e=0; e<max_epoch; e+=step) {
+			BasicNetwork network = createNetwork();
 			
-					final Backpropagation train = new Backpropagation(network, trainingSet, i, j);
-					train.fixFlatSpot(false);
-					
-					int epoch = 0;
-					do {
-						train.iteration();
-						epoch++;
-					} while (epoch < e);
-					
-					if (train.getError()<local_best_error) {
-						local_best_error = train.getError();
-					}
-				}
-			}
-			er[e] = local_best_error;
+			final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
+			train.fixFlatSpot(false);
 			
-			System.out.println("Epoch: " + e + " | Training error: " + local_best_error);
+			int epoch = 0;
+			do {
+				train.iteration();
+				epoch++;
+			} while (epoch < e);
+
+			er[e] = train.getError();
+			
+			System.out.println("Epoch: " + e + " | Training error: " + train.getError());
 		}
-				
-				
-		
 
 		plotGraph pg = new plotGraph("Error Graph", "Epoch", "Error rate", ep, er, v, (double)best_epoch);
 		pg.plot();
@@ -249,3 +219,4 @@ public class GenNNAND {
 		return cvSet;
 	}
 }
+

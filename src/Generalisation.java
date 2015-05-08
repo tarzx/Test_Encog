@@ -19,7 +19,7 @@ public class Generalisation {
     	// Create training data
 		NeuralNetUtil.trainingSet = TrainingSetUtil.loadCSVTOMemory(CSVFormat.ENGLISH, 
 				fileName, true, NeuralNetUtil.NUM_INPUT_BITS, NeuralNetUtil.NUM_OUTPUT_BITS);
-		CrossValidation.setTraining(NeuralNetUtil.interventionNetCSV, NeuralNetUtil.netCSVset);
+		CrossValidation.setTraining(NeuralNetUtil.interventionNetCSV, NeuralNetUtil.netCSVset, NeuralNetUtil.netCSVValidationset);
     	
     	// Retrieve net
 		System.out.println("Back Propagation---------------------------");

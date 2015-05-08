@@ -14,15 +14,20 @@ public class NeuralNetUtil {
 	static String subQuestionNetCSV = "normalizedSubQuestion.csv";
 	static String[] netCSVset = {"value_set1.csv", "value_set2.csv", "value_set3.csv", 
 								 "value_set4.csv", "value_set5.csv"};
+	static String[] netCSVValidationset = {"validation_set1.csv", "validation_set2.csv", "validation_set3.csv", 
+		 						 		   "validation_set4.csv", "validation_set5.csv"};
 	static int nSet = netCSVset.length;
 	
 	// Number of bits representing input
 	static int NUM_INPUT_BITS = 3;
 	// Number of bits representing output 
 	static int NUM_OUTPUT_BITS = 1;
+	
 	// Training data
 	static MLDataSet trainingSet;
 	static MLDataSet[] trainingSets = new MLDataSet[nSet];
+	static MLDataSet[] validationSets = new MLDataSet[nSet];
+
 
 	// Whether the net can be parsed for sending to the app
 	static boolean ready_to_parse = false;
@@ -36,18 +41,20 @@ public class NeuralNetUtil {
 		new File("neuralNetset4.eg"), new File("neuralNetset5.eg")};
 
 	// Maximum number of neurons to have
-	final static int MAX_NEURONS = 15;
+	final static int MAX_NEURONS = 10;
 	// Maximum learning rate
 	final static double MAX_LEARNING = 1.0;
 	// Maximum momentum
 	final static double MAX_MOMENTUM = 1.0;
 	// Amount to increase learning rate and momentum by
-	final static double STEP = 0.1;
+	final static double STEP_PROPAGATION = 0.1;
 	// Maximum epoch 
-	final static int MAX_EPOCH = 1500;
+	final static int MAX_EPOCH = 1000;
+	// Amount to increase epoch by
+	final static int STEP_EPOCH = 20;
 	// Threshold for Error
-	final static double TRAIN_THRESHOLD = 1E-4;
-	final static double THRESHOLD = 3000.0;
+	final static double ERROR_THRESHOLD = 1E-5;
+	final static double THRESHOLD = 3000;
 	
 	/**  Write out adult net to file
 	 * 
